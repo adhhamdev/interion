@@ -72,9 +72,6 @@ const INITIAL_VIDEO_STATE: VideoState = {
 type Tab = 'create' | 'insight' | 'add' | 'edit' | 'video-settings';
 type Theme = 'dark' | 'light';
 
-const Logo = ({ className = "w-12 h-12" }: { className?: string }) => (
-  <img src="logo.svg" alt="Interior AI Logo" className={className} />
-);
 
 const App: React.FC = () => {
   const [mode, setMode] = useState<Mode>('landing');
@@ -367,7 +364,6 @@ const App: React.FC = () => {
           </div>
           <div className="max-w-xl w-full text-center space-y-8 animate-in fade-in zoom-in duration-500">
             <div className="flex flex-col items-center gap-4">
-              <Logo className="w-24 h-24 text-indigo-500" />
               <h1 className="text-7xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-white to-zinc-500">Interior AI</h1>
             </div>
             <p className={`${theme === 'dark' ? 'text-zinc-500' : 'text-zinc-600'} text-lg`}>Transform spaces iteratively or generate cinematic showcases for commercial use.</p>
@@ -409,7 +405,7 @@ const App: React.FC = () => {
           <div className={`flex-1 relative flex flex-col min-h-0 ${theme === 'dark' ? 'bg-[#080808]' : 'bg-zinc-200'} transition-colors duration-300`}>
             <div className="absolute top-4 inset-x-0 z-20 flex items-center justify-between px-6 pointer-events-none">
               <div className="flex gap-2 pointer-events-auto items-center">
-                <button onClick={() => setMode('landing')} className={`px-4 py-2 flex items-center gap-2 rounded-full backdrop-blur-md border shadow-sm transition-all ${theme === 'dark' ? 'bg-black/60 border-white/5 text-white' : 'bg-white/80 border-zinc-300 text-zinc-900'}`}><Logo className="w-5 h-5" /> Home</button>
+                <button onClick={() => setMode('landing')} className={`px-4 py-2 flex items-center gap-2 rounded-full backdrop-blur-md border shadow-sm transition-all ${theme === 'dark' ? 'bg-black/60 border-white/5 text-white' : 'bg-white/80 border-zinc-300 text-zinc-900'}`}>Home</button>
                 <button onClick={handleReset} className={`p-3 rounded-full backdrop-blur-md border shadow-sm transition-all ${theme === 'dark' ? 'bg-black/60 border-white/5 text-white' : 'bg-white/80 border-zinc-300 text-zinc-900'}`} title="New Project"><Plus className="w-4 h-4" /></button>
                 <button onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} className={`p-3 rounded-full backdrop-blur-md border shadow-sm ${theme === 'dark' ? 'bg-black/60 border-white/5 text-white' : 'bg-white/80 border-zinc-300 text-zinc-900'}`}>{theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}</button>
               </div>
@@ -461,7 +457,6 @@ const App: React.FC = () => {
           <div className={`flex-none z-30 flex flex-col border-t md:border-l ${theme === 'dark' ? 'bg-zinc-950 border-white/5' : 'bg-white border-zinc-200'} transition-all duration-500 ease-in-out shadow-xl ${isPanelExpanded ? 'h-[82vh] md:h-full md:w-[420px]' : 'h-[140px] md:h-full md:w-[80px]'}`}>
             <div className={`flex items-center justify-between p-4 md:p-6 border-b flex-none ${theme === 'dark' ? 'border-white/5' : 'border-zinc-200'} ${!isPanelExpanded && 'md:justify-center'}`}>
               <div className="flex items-center gap-3">
-                <Logo className="w-6 h-6 text-indigo-500" />
                 {isPanelExpanded && <h2 className={`text-xs font-black uppercase tracking-widest ${theme === 'dark' ? 'text-zinc-500' : 'text-zinc-400'}`}>{mode === 'video' ? 'Cinema Studio' : 'Design Studio'}</h2>}
               </div>
               <div className="flex items-center gap-2">
