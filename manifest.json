@@ -1,0 +1,23 @@
+{
+  "name": "Interior AI Studio",
+  "short_name": "InteriorAI",
+  "description": "Professional-grade iterative interior design and cinematic showcase generator.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3055/3055314.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
