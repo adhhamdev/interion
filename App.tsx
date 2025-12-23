@@ -127,10 +127,15 @@ const App: React.FC = () => {
 
   // --- API Key Selection for Veo ---
   const ensureApiKey = async () => {
-    const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+    const aistudio = (window as any).aistudio;
+    if (!aistudio || typeof aistudio.hasSelectedApiKey !== 'function') {
+      addToast("API key selection is not available in this environment.", "error");
+      return;
+    }
+    const hasKey = await aistudio.hasSelectedApiKey();
     if (!hasKey) {
       addToast("A paid project API key is required for video generation.", "info");
-      await (window as any).aistudio.openSelectKey();
+      await aistudio.openSelectKey();
     }
   };
 
