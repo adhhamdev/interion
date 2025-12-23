@@ -1,10 +1,8 @@
-# Interion 🏠✨
-
-![Interion Banner](https://github.com/adhhamdev/interion/blob/main/public/banner.png?raw=true)
+# Interior AI 🏠✨
 
 > **Transform your space with AI-powered interior design suggestions**
 
-Interion is an intelligent interior design assistant that leverages Google's Gemini AI to provide personalized room design recommendations. Simply upload a photo of your room, and get instant, creative suggestions to enhance your space.
+Interior AI is an intelligent interior design assistant that leverages Google's Gemini AI to provide personalized room design recommendations. Simply upload a photo of your room, and get instant, creative suggestions to enhance your space.
 
 ---
 
@@ -24,11 +22,11 @@ Interion is an intelligent interior design assistant that leverages Google's Gem
 
 | Technology | Purpose |
 |------------|---------|
-| **Next.js 15** | React framework for production |
+| **React.js** | Frontend Framework for production |
 | **TypeScript** | Type-safe development |
 | **Google Gemini AI** | Advanced AI vision and analysis |
 | **Tailwind CSS** | Modern, utility-first styling |
-| **Vercel** | Deployment and hosting |
+| **Google Cloud Run** | Deployment and hostin |
 
 ---
 
@@ -43,8 +41,8 @@ Interion is an intelligent interior design assistant that leverages Google's Gem
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/adhhamdev/interion.git
-   cd interion
+   git clone https://github.com/adhhamdev/Interior AI.git
+   cd Interior AI
    ```
 
 2. **Install dependencies**
@@ -95,7 +93,7 @@ Interion is an intelligent interior design assistant that leverages Google's Gem
 ## 📂 Project Structure
 
 ```
-interion/
+Interior AI/
 ├── app/                  # Next.js app directory
 │   ├── api/             # API routes
 │   ├── components/      # React components
@@ -110,7 +108,7 @@ interion/
 
 ## 🎯 Hackathon Submission
 
-**Interion** was created as part of a hackathon to demonstrate the practical applications of AI in everyday life. This project showcases:
+**Interior AI** was created as part of a hackathon to demonstrate the practical applications of AI in everyday life. This project showcases:
 
 - **Innovation**: Using Gemini AI for creative interior design solutions
 - **Accessibility**: Making professional design advice available to everyone
@@ -127,8 +125,7 @@ interion/
 
 ## 🌐 Live Demo
 
-🔗 **[Try Interion Live](https://interion.vercel.app)** *(Update with your deployment URL)*
-
+🔗 **[Try Interior AI Live](https://interior-ai-864871027138.us-west1.run.app/)**
 ---
 
 ## 🤝 Contributing
@@ -154,17 +151,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Adhham Dev**
 
 - GitHub: [@adhhamdev](https://github.com/adhhamdev)
-- Project Link: [https://github.com/adhhamdev/interion](https://github.com/adhhamdev/interion)
+- Project Link: [https://github.com/adhhamdev/Interior AI](https://github.com/adhhamdev/Interior AI)
 
 ---
 
 ## 🙏 Acknowledgments
 
 - [Google Gemini AI](https://deepmind.google/technologies/gemini/) for powerful AI capabilities
-- [Next.js](https://nextjs.org/) for the amazing React framework
-- [Vercel](https://vercel.com/) for seamless deployment
-- All contributors and supporters of this project
-
 ---
 
 ## 📧 Contact
