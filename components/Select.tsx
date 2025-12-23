@@ -10,28 +10,29 @@ export const Select: React.FC<SelectProps> = ({ label, options, className = '', 
   return (
     <div className="flex flex-col gap-2 w-full group">
       {label && (
-        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1 group-focus-within:text-indigo-400 transition-colors">
+        <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors">
           {label}
         </label>
       )}
       <div className="relative">
         <select 
           className={`
-            appearance-none w-full bg-zinc-900/50 hover:bg-zinc-900 border border-white/5 text-zinc-100 
+            appearance-none w-full bg-white dark:bg-zinc-900/50 hover:bg-zinc-50 dark:hover:bg-zinc-900 
+            border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-zinc-100 
             rounded-xl px-4 py-3 text-sm transition-all duration-200
-            focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 focus:bg-zinc-950
+            focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 dark:focus:bg-zinc-950
             cursor-pointer pr-10
             ${className}
           `}
           {...props}
         >
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-zinc-900 text-zinc-100 py-2">
+            <option key={opt.value} value={opt.value} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 py-2">
               {opt.label}
             </option>
           ))}
         </select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-500 group-focus-within:text-indigo-400 transition-colors">
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-400 group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400 transition-colors">
           <ChevronDown className="w-4 h-4" />
         </div>
       </div>

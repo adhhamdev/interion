@@ -1,129 +1,191 @@
-import { GoogleGenAI } from "@google/genai";
-import { DesignState, DesignVersion } from '../types';
 
-const getBase64FromUrl = async (url: string): Promise<string> => {
-  // If it's already a data URL, strip the prefix
+import { GoogleGenAI } from "@google/genai";
+import { DesignState, GenerationResponse, VideoState } from '../types';
+
+const getBase64FromUrl = (url: string): string => {
   if (url.startsWith('data:')) {
     return url.split(',')[1];
   }
   return url;
 };
 
-// System prompt definition based on requirements
-const SYSTEM_PROMPT = JSON.stringify({
-  role: "system",
-  identity: "You are a world-class interior designer with decades of experience in residential and commercial interiors. You strictly follow architectural realism, interior design principles, ergonomic standards, and budget feasibility.",
-  core_objective: "Transform the provided interior image into a realistic, buildable, and professionally designed interior that satisfies user intent while respecting physical, spatial, and budget constraints.",
-  design_rules: {
-    spatial_integrity: "Preserve original room geometry, perspective, and structural elements. Do not add or remove walls, doors, or windows unless explicitly instructed.",
-    scale_accuracy: "All furniture and decor must be correctly scaled to the room dimensions and camera perspective.",
-    material_realism: "Use materials that exist in the real world and match the defined budget level.",
-    budget_alignment: "Every design choice must align with the declared budget constraints.",
-    no_hallucination: "Never invent objects, structures, or features not supported by the image or user instructions."
-  },
-  output_requirements: {
-    image_quality: "High-resolution, photorealistic, clean interior visualization",
-    visual_purity: "No text, no labels, no logos, no watermarks"
-  }
-});
+const SYSTEM_PROMPT = `
+You are "VibeArchitect," a world-class AI interior designer. Your task is to redesign the provided room image based on user preferences.
+
+CRITICAL RULES:
+1. You MUST provide exactly TWO parts in your response:
+   - PART 1 (Text): A valid JSON object containing metadata.
+   - PART 2 (Image): The redesigned room image (no text/labels in image).
+
+JSON STRUCTURE:
+{
+  "vibeSummary": "Short catchy summary of the new atmosphere",
+  "reasoning": "Technical explanation of layout, lighting, and style choices",
+  "suggestions": ["4 specific, smart follow-up design requests"],
+  "sustainabilityScore": 1-10
+}
+
+GUIDELINES:
+- Analyze architectural constraints (windows, doors) and respect them.
+- If an inspiration image is provided, match its color palette and mood.
+- If furniture assets are provided, place them realistically in the scene.
+- Be creative but professional. Ensure the output is high-quality.
+`;
 
 export const generateDesignIteration = async (
   currentImage: string,
   config: DesignState,
   previousVersionId: string | null
-): Promise<string> => {
+): Promise<GenerationResponse> => {
+  if (!process.env.API_KEY) {
+    throw new Error("Missing API key configuration.");
+  }
+
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  // 1. Prepare Main Image
-  const mainImageBase64 = await getBase64FromUrl(currentImage);
+  const mainImageBase64 = getBase64FromUrl(currentImage);
 
-  // 2. Prepare Custom Items
-  const customItemsPrompt = config.customItems.map((item, index) => {
-    return `   - Asset #${index + 1}: ${item.instruction || "Integrate this item naturally into the room."}`;
-  }).join('\n');
-
-  // 3. Construct structured prompt
   const userPromptObj = {
     room_type: config.roomType,
     design_intent: {
       style: config.style,
       mood: config.mood,
+      presets: config.selectedPresets
     },
     constraints: {
       budget: config.budget,
       locked_elements: config.lockedElements || "None"
     },
     iteration_instruction: config.instructions,
-    previous_version_reference: previousVersionId || "Initial Upload"
+    vibe_context: config.selectedPresets.join(', ')
   };
 
-  let fullPrompt = `
-    ${SYSTEM_PROMPT}
-    
-    USER INSTRUCTION JSON:
-    ${JSON.stringify(userPromptObj, null, 2)}
-    
-    ACTION:
-    Edit the provided MAIN ROOM IMAGE to match the Design Intent and Constraints above. 
-    Maintain the perspective and structural elements of the input image strictly.
-  `;
-
-  if (config.customItems.length > 0) {
-    fullPrompt += `
-    
-    IMPORTANT - INTEGRATING CUSTOM ASSETS:
-    I have provided ${config.customItems.length} additional reference images after the main room image.
-    You must realistically place these specific items into the room based on the following instructions:
-    ${customItemsPrompt}
-    
-    Ensure the lighting, perspective, and scale of these assets match the main room perfectly.
-    `;
-  }
-
-  fullPrompt += `\nReturn only the generated image.`;
-
-  // 4. Build Request Parts
   const parts: any[] = [
-    { text: fullPrompt },
-    { 
-      inlineData: {
-        mimeType: 'image/png', 
-        data: mainImageBase64, 
-      }
-    }
+    { text: SYSTEM_PROMPT },
+    { text: `REDESIGN REQUEST:\n${JSON.stringify(userPromptObj, null, 2)}\n\nApply these changes to the attached image.` },
+    { inlineData: { mimeType: 'image/png', data: mainImageBase64 } }
   ];
 
-  // Append custom item images
+  // Multimodal Inspiration
+  if (config.inspirationImage) {
+    parts.push({ text: "STYLE INSPIRATION REFERENCE:" });
+    parts.push({ inlineData: { mimeType: 'image/png', data: getBase64FromUrl(config.inspirationImage) } });
+  }
+
+  // Custom Furniture Assets
   for (const item of config.customItems) {
-    const itemBase64 = await getBase64FromUrl(item.image);
-    parts.push({
-      inlineData: {
-        mimeType: 'image/png', // Simplified assumption, logic handles various types via base64 extraction
-        data: itemBase64
-      }
-    });
+    parts.push({ text: `PLACE THIS FURNITURE: ${item.instruction || "Natural placement."}` });
+    parts.push({ inlineData: { mimeType: 'image/png', data: getBase64FromUrl(item.image) } });
   }
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: parts,
-      },
-      config: {}
+      contents: { parts },
     });
 
-    // Extract image from response
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
+    let imageUrl = "";
+    let metadataStr = "";
+
+    const candidates = response.candidates || [];
+    if (candidates.length === 0 || !candidates[0].content) {
+      throw new Error("The designer couldn't process this image. Please try a different room photo.");
+    }
+
+    for (const part of candidates[0].content.parts || []) {
       if (part.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
+        imageUrl = `data:image/png;base64,${part.inlineData.data}`;
+      } else if (part.text) {
+        metadataStr += part.text;
       }
     }
 
-    throw new Error("No image generated in response.");
+    // If the model didn't provide an image but provided text, it might be a refusal or safety block.
+    if (!imageUrl) {
+      if (metadataStr.toLowerCase().includes("safety") || metadataStr.toLowerCase().includes("cannot") || metadataStr.toLowerCase().includes("refuse")) {
+        throw new Error("The design engine declined to generate this specific visual. Try a more neutral design request.");
+      }
+      throw new Error("VibeArchitect was unable to generate a redesigned image. Try simplifying your instructions or using a clearer room photo.");
+    }
 
-  } catch (error) {
-    console.error("Gemini API Error:", error);
+    // Extract JSON from metadata string with robust fallbacks
+    let parsedMetadata = { 
+      vibeSummary: "New atmosphere generated.", 
+      reasoning: "Balanced the new style with existing architectural constraints.", 
+      suggestions: ["Add indoor plants", "Include accent lighting", "Try a different wall color", "Add window treatments"],
+      sustainabilityScore: 7 
+    };
+    
+    try {
+      const jsonMatch = metadataStr.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        parsedMetadata = {
+          vibeSummary: parsed.vibeSummary || parsedMetadata.vibeSummary,
+          reasoning: parsed.reasoning || parsedMetadata.reasoning,
+          suggestions: (Array.isArray(parsed.suggestions) && parsed.suggestions.length > 0) ? parsed.suggestions : parsedMetadata.suggestions,
+          sustainabilityScore: typeof parsed.sustainabilityScore === 'number' ? parsed.sustainabilityScore : parsedMetadata.sustainabilityScore
+        };
+      }
+    } catch (e) {
+      console.warn("Could not parse AI reasoning JSON, using fallbacks.");
+    }
+
+    return {
+      imageUrl,
+      vibeSummary: parsedMetadata.vibeSummary,
+      reasoning: parsedMetadata.reasoning,
+      suggestions: parsedMetadata.suggestions,
+      sustainabilityScore: parsedMetadata.sustainabilityScore
+    };
+
+  } catch (error: any) {
+    if (error.message?.includes("block")) {
+      throw new Error("The design was blocked by safety filters. Please ensure the instructions and images are appropriate.");
+    }
+    throw error;
+  }
+};
+
+export const generateDesignVideo = async (
+  imageBase64: string,
+  config: VideoState
+): Promise<string> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  const finalPrompt = `Professional cinematic interior showcase: ${config.prompt}. Style: ${config.style}. High quality architectural visualization, smooth camera sweep, photorealistic, 4k detail. Motion: ${config.motionIntensity}/10.`;
+
+  try {
+    let operation = await ai.models.generateVideos({
+      model: 'veo-3.1-fast-generate-preview',
+      prompt: finalPrompt,
+      image: {
+        imageBytes: getBase64FromUrl(imageBase64),
+        mimeType: 'image/png',
+      },
+      config: {
+        numberOfVideos: 1,
+        resolution: config.resolution,
+        aspectRatio: config.aspectRatio
+      }
+    });
+
+    while (!operation.done) {
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      operation = await ai.operations.getVideosOperation({ operation: operation });
+    }
+
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    if (!downloadLink) throw new Error("Video generation failed: No URI returned.");
+
+    // Append API key to fetch link
+    const videoResponse = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    const blob = await videoResponse.blob();
+    return URL.createObjectURL(blob);
+  } catch (error: any) {
+    if (error.message?.includes("not found")) {
+      throw new Error("API_KEY_ERROR");
+    }
     throw error;
   }
 };

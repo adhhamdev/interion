@@ -1,3 +1,4 @@
+
 export enum RoomType {
   LIVING_ROOM = 'Living Room',
   BEDROOM = 'Bedroom',
@@ -40,6 +41,8 @@ export interface DesignState {
   instructions: string;
   lockedElements: string;
   customItems: CustomItem[];
+  inspirationImage?: string; // For Cross-Modal Aesthetic Transfer
+  selectedPresets: string[]; // Quick-Action Chips
 }
 
 export interface DesignVersion {
@@ -49,9 +52,33 @@ export interface DesignVersion {
   imageUrl: string; // Base64 data URI
   config: DesignState;
   promptUsed: string;
+  vibeSummary?: string;
+  reasoning?: string;
+  suggestions?: string[];
+  sustainabilityScore?: number;
 }
 
 export interface GenerationResponse {
   imageUrl: string;
-  metadata?: string;
+  vibeSummary: string;
+  reasoning: string;
+  suggestions: string[];
+  sustainabilityScore: number;
+}
+
+export interface VideoVersion {
+  id: string;
+  timestamp: number;
+  videoUrl: string;
+  thumbnailUrl: string;
+  prompt: string;
+  config: VideoState;
+}
+
+export interface VideoState {
+  resolution: '720p' | '1080p';
+  aspectRatio: '16:9' | '9:16';
+  style: string;
+  motionIntensity: number;
+  prompt: string;
 }
